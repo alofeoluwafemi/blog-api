@@ -19,6 +19,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
 Route::group(['prefix' => 'v1'],function($route)
 {
+    $route->post('user/create',['uses' => 'Auth\RegisterController@createUser']);
    $route->post('article/create',['uses' => 'ArticleController@createNewArticle'])->middleware('auth:api');
    $route->get('articles',['uses' => 'ArticleController@getAllArticles']);
    $route->get('article/{id}',['uses' => 'ArticleController@viewArticle'])->where(['id' => '[0-9]']);

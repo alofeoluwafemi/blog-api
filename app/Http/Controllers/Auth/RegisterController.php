@@ -4,8 +4,11 @@ namespace App\Http\Controllers\Auth;
 
 use App\User;
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Foundation\Auth\RegistersUsers;
+use League\Fractal\Manager;
+use League\Fractal\Resource\Item;
 
 class RegisterController extends Controller
 {
@@ -67,5 +70,24 @@ class RegisterController extends Controller
             'email' => $data['email'],
             'password' => bcrypt($data['password']),
         ]);
+    }
+
+    /**
+     * @param Request $request
+     * @return string
+     */
+    public function createUser(Request $request,Manager $fractal)
+    {
+        $data = User::create($request->all());
+
+        $resource = new Item($data, function($user) {
+            return [
+                'id'         => (int) $user->id,
+                'username'   => $user->username,
+                'password'   => $user->password,
+            ];
+        });
+
+        return $fractal->createData($resource)->toJson();
     }
 }

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Article;
 use App\User;
 use Illuminate\Support\Facades\App;
 use Tests\TestCase;
@@ -56,21 +57,24 @@ class ArticleTest extends TestCase
             'description' => $faker->paragraph(10),
         ]);
 
-        $this->assertObjectHasAttribute('data',json_decode($response->getContent()));
+        $data = json_decode($response->getContent());
+
+        $this->assertObjectHasAttribute('data',$data);
     }
 
     public function testCommentOnArticle()
     {
-        $user = factory(User::class)->create();
+        $user       = factory(User::class)->create();
+        $article    = Article::first();
 
-        $response = $this->actingAs($user)->json('POST',"api/v1/article/1/comment",[
+        $response = $this->actingAs($user)->json('POST',"api/v1/article/{$article->id}/comment",[
             'user_id' => $user->id,
             'content' => 'A random comment from a random user'
         ]);
 
-        dd($response);
+        $data = json_decode($response->getContent());
 
-        $this->assertObjectHasAttribute('data',json_decode($response->getContent()));
+        $this->assertObjectHasAttribute('data',$data);
     }
 
     public function testDeleteArticle()

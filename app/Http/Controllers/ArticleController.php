@@ -30,7 +30,7 @@ class ArticleController extends Controller
      */
     public function getAllArticles(ArticleModel $article)
     {
-        $articles = $article->paginate(10);
+        $articles = $article->paginate(5);
 
         $fractal = new Manager();
 
@@ -39,6 +39,7 @@ class ArticleController extends Controller
                 'id'            => (int) $article['id'],
                 'title'         => $article['title'],
                 'description'   => $article['description'],
+                'published'     => $article->created_at,
                 'comments'      => $article->comments->each(function($comment)
                 {
                     return [
@@ -97,7 +98,9 @@ class ArticleController extends Controller
     {
         $article = ArticleModel::findOrFail($id);
 
-        return $this->singleItem($article->update($request->all()));
+        $article->update($request->all());
+
+        return $this->singleItem($article);
     }
 
     public function deleteArticle($id)
@@ -113,7 +116,7 @@ class ArticleController extends Controller
 
         $article->comments()->save(new CommentModel($request->all()));
 
-        return $this->singleItem($article->with('comments'));
+        return $this->singleItem($article);
     }
 
     private function singleItem($data)
@@ -124,7 +127,14 @@ class ArticleController extends Controller
                 'title'         => $article->title,
                 'description'   => $article->description,
                 'published'     => $article->created_at,
-                'comments'      => $article->comments,
+                'comments'      => $article->comments->each(function($comment)
+                {
+                    return [
+                        'comment'     => $comment->content,
+                        'published'   => $comment->created_at,
+                        'user'        => $comment->user->name
+                    ];
+                }),
                 'links'   => [
                     [
                         'rel' => 'self',
